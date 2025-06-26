@@ -1,5 +1,5 @@
 
-import { View, Text, Image, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, Image, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -18,7 +18,7 @@ export default function StarterScreen() {
                     <Text style={styles.textT}>DIGITAL TRANSFORMATION CENTER</Text>
                      <Text style={styles.textB}>The DICT offers free Digital Transformation Centers for freelancers, students, remote workers, and startups.
                                                  This app tracks daily usage to help us enhance our services and sustain the program.</Text>
-                    <Text style={styles.textT}>HOW IT WORKS</Text>
+                    <Text style={styles.textsT}>HOW IT WORKS</Text>
                 </View>
              <View style={styles.body}>
                    <View style={styles.icon}>
@@ -27,7 +27,7 @@ export default function StarterScreen() {
                             style={{ width: width * 0.15, height: width * 0.15, marginLeft: 5, marginBottom: 20 }}
                             resizeMode="contain"
                         />
-                         <Text style={styles.textB}>Fill out the form with your basic information.</Text>
+                         <Text style={styles.textsB}>Fill out the form with your basic information.</Text>
                     </View>
                     <View style={styles.icon}>
                          <Image
@@ -35,7 +35,8 @@ export default function StarterScreen() {
                             style={{ width: width * 0.15, height: width * 0.15, marginLeft: 5, marginBottom: 20 }}
                             resizeMode="contain"
                         />
-                         <Text style={styles.textB}>Fill out the form with your basic information.</Text>
+                         <Text style={styles.textsB}>When you visit any Digital Transformation Center, 
+                            scan the QR code posted at the entrance.</Text>
                     </View>
                       <View style={styles.icon}>
                          <Image
@@ -43,10 +44,18 @@ export default function StarterScreen() {
                             style={{ width: width * 0.15, height: width * 0.15, marginLeft: 5, marginBottom: 20 }}
                             resizeMode="contain"
                         />
-                         <Text style={styles.textB}>Fill out the form with your basic information.</Text>
+                         <Text style={styles.textsB}>That’s it! Your attendance will be recorded 
+                            automatically — no login required.</Text>
                     </View>
+
+                    <Text style={styles.note}>
+                    Note: Your information is securely stored only on your device and used only for attendance monitoring purposes.
+                    </Text>
+
+                <TouchableOpacity style={styles.button}>
+                <Text style={styles.buttonText}>REGISTER</Text>
+                </TouchableOpacity>
                 </View>
-                    
             </View>
 
       
@@ -85,6 +94,11 @@ const styles = StyleSheet.create({
         elevation: 6,
         marginTop: -130,
     },
+    body:{
+        paddingHorizontal: 25,
+        marginLeft: 20,
+        
+    },
     title:{
         justifyContent: 'center',
         alignItems: 'center',
@@ -98,10 +112,23 @@ const styles = StyleSheet.create({
         paddingHorizontal: 5,
     },
 
+    textsB: {
+        fontSize: 14,
+        color: '#000',
+        textAlign: 'left',
+        marginLeft: 10,
+    },
+
     icon:{
         flexDirection:'row',
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    textsT: {
+        marginTop: 30,
+        fontSize: 19,
+        fontWeight: 'bold',
+        color: '#027CFF',
     },
     
     textT: {
@@ -109,4 +136,27 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#027CFF',
     },
+    note: {
+        fontSize: 12,
+        color: '#666',
+        marginTop: 15,
+        textAlign: 'left',
+    },
+  button: {
+    marginTop: 20,
+    backgroundColor: '#007bff',
+    borderRadius: 24,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
 });

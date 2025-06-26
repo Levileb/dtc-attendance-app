@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Dimensions, Image } from 'react-native';
+import { View, StyleSheet, Dimensions, Image, TouchableWithoutFeedback } from 'react-native';
 import { useRouter } from 'expo-router';
 
 const { width } = Dimensions.get('window');
@@ -7,29 +7,42 @@ const { width } = Dimensions.get('window');
 export default function HomeScreen() {
   const router = useRouter();
   const [duration, setDuration] = useState(5); 
+  const [navigated, setNavigated] = useState(false);
 
   useEffect(() => {
-    if (duration === 0) {
+    if (duration === 0 && !navigated) {
+      setNavigated(true);
       router.replace('/starter');
       return;
     }
-    const timer = setTimeout(() => setDuration(duration - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [duration, router]);
+    if (!navigated) {
+      const timer = setTimeout(() => setDuration(duration - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [duration, router, navigated]);
+
+  const handlePress = () => {
+    if (!navigated) {
+      setNavigated(true);
+      router.replace('/starter');
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      <Image
-        source={require('../assets/images/app-assets/dict1.png')}
-        style={{ width: width * 0.5, height: width * 0.5, marginBottom: 20 }}
-        resizeMode="contain"
-      />
-      <Image
-        source={require('../assets/images/app-assets/dtc1.png')}
-        style={{ width: width * 0.5, height: width * 0.5, marginBottom: 20 }}
-        resizeMode="contain"
-      />
-    </View>
+    <TouchableWithoutFeedback onPress={handlePress}>
+      <View style={styles.container}>
+        <Image
+          source={require('../assets/images/app-assets/dict1.png')}
+          style={{ width: width * 0.5, height: width * 0.5, marginBottom: 20 }}
+          resizeMode="contain"
+        />
+        <Image
+          source={require('../assets/images/app-assets/dtc1.png')}
+          style={{ width: width * 0.5, height: width * 0.5, marginBottom: 20 }}
+          resizeMode="contain"
+        />
+      </View>
+    </TouchableWithoutFeedback>
   );
 }
 

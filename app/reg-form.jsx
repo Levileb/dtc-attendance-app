@@ -14,7 +14,12 @@ import { useNavigation } from '@react-navigation/native';
 const { width, height } = Dimensions.get('window');
 
 export default function Register() {
-     const navigation = useNavigation();
+
+
+  const navigation = useNavigation();
+
+  const [loading, setLoading] = useState(false);
+
 
   const [name, setName] = useState('');
   const [city, setCity] = useState('');
@@ -41,6 +46,8 @@ export default function Register() {
       return;
     }
 
+    setLoading(true);
+
     const userData = {
       name,
       city,
@@ -60,6 +67,7 @@ export default function Register() {
       // Save locally using AsyncStorage
       await AsyncStorage.setItem('@userData', JSON.stringify(userData));
 
+      setLoading(false);
       navigation.navigate('qr-scanner');
 
       Alert.alert("Success", "User data saved successfully!");
@@ -162,9 +170,17 @@ export default function Register() {
               Note: Your information is securely stored only on your device and used only for attendance monitoring purposes.
             </Text>
 
-            <TouchableOpacity style={styles.button} onPress={handleSave}>
-              <Text style={styles.buttonText}>SAVE</Text>
-            </TouchableOpacity>
+           <TouchableOpacity
+                style={[styles.button, loading && { opacity: 0.7 }]}
+                onPress={handleSave}
+                disabled={loading}
+                >
+                {loading ? (
+                    <Text style={styles.buttonText}>Saving...</Text>
+                ) : (
+                    <Text style={styles.buttonText}>SAVE</Text>
+                )}
+                </TouchableOpacity>
           </View>
         </View>
       </ScrollView>

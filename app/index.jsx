@@ -10,6 +10,7 @@ const { width } = Dimensions.get('window');
 export default function HomeScreen() {
   const router = useRouter();
   const [dots, setDots] = useState('');
+  const [deleting, setDeleting] = useState(false);
   const dotStates = ['', '.', '..', '...'];
 
   useEffect(() => {
@@ -18,7 +19,7 @@ export default function HomeScreen() {
         const nextIndex = (dotStates.indexOf(prev) + 1) % dotStates.length;
         return dotStates[nextIndex];
       });
-    }, 400); 
+    }, 400);
 
     const checkUserData = async () => {
       try {
@@ -45,7 +46,16 @@ export default function HomeScreen() {
           );
 
           clearInterval(dotInterval);
-          router.replace(matched ? '/qr-scanner' : '/starter');
+
+          if (matched) {
+            router.replace('/qr-scanner');
+          } else {
+            setDeleting(true); // Show "Deleting user data..."
+            await AsyncStorage.removeItem('@userData');
+            setTimeout(() => {
+              router.replace('/starter');
+            }, 1500); // Delay so user sees message
+          }
         } else {
           clearInterval(dotInterval);
           router.replace('/starter');
@@ -59,7 +69,7 @@ export default function HomeScreen() {
 
     checkUserData();
 
-    return () => clearInterval(dotInterval); // Clean up
+    return () => clearInterval(dotInterval); // Clean up interval
   }, [router]);
 
   return (
@@ -74,7 +84,9 @@ export default function HomeScreen() {
         style={{ width: width * 0.5, height: width * 0.5 }}
         resizeMode="contain"
       />
-      <Text style={styles.checkingText}>Checking user data{dots}</Text>
+      <Text style={styles.checkingText}>
+        {deleting ? 'Deleting user data' + dots : 'Checking user data' + dots}
+      </Text>
     </View>
   );
 }

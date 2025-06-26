@@ -1,48 +1,81 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Dimensions, Image, TouchableWithoutFeedback } from 'react-native';
+import { View, StyleSheet, Dimensions, Image, Text } from 'react-native';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { database } from '../FirebaseConfig';
+import { ref, get, child } from 'firebase/database';
 
 const { width } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [duration, setDuration] = useState(5); 
-  const [navigated, setNavigated] = useState(false);
+  const [dots, setDots] = useState('');
+  const dotStates = ['', '.', '..', '...'];
 
   useEffect(() => {
-    if (duration === 0 && !navigated) {
-      setNavigated(true);
-      router.replace('/starter');
-      return;
-    }
-    if (!navigated) {
-      const timer = setTimeout(() => setDuration(duration - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [duration, router, navigated]);
+    const dotInterval = setInterval(() => {
+      setDots(prev => {
+        const nextIndex = (dotStates.indexOf(prev) + 1) % dotStates.length;
+        return dotStates[nextIndex];
+      });
+    }, 400); 
 
-  const handlePress = () => {
-    if (!navigated) {
-      setNavigated(true);
-      router.replace('/starter');
-    }
-  };
+    const checkUserData = async () => {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+
+        const stored = await AsyncStorage.getItem('@userData');
+        if (!stored) {
+          clearInterval(dotInterval);
+          router.replace('/starter');
+          return;
+        }
+
+        const localData = JSON.parse(stored);
+        const dbRef = ref(database);
+        const snapshot = await get(child(dbRef, 'user'));
+
+        if (snapshot.exists()) {
+          const users = snapshot.val();
+          const matched = Object.values(users).find(user =>
+            user.name === localData.name &&
+            user.city === localData.city &&
+            user.barangay === localData.barangay &&
+            user.birthdate === localData.birthdate
+          );
+
+          clearInterval(dotInterval);
+          router.replace(matched ? '/qr-scanner' : '/starter');
+        } else {
+          clearInterval(dotInterval);
+          router.replace('/starter');
+        }
+      } catch (error) {
+        console.error('Error during user check:', error);
+        clearInterval(dotInterval);
+        router.replace('/starter');
+      }
+    };
+
+    checkUserData();
+
+    return () => clearInterval(dotInterval); // Clean up
+  }, [router]);
 
   return (
-    <TouchableWithoutFeedback onPress={handlePress}>
-      <View style={styles.container}>
-        <Image
-          source={require('../assets/images/app-assets/dict1.png')}
-          style={{ width: width * 0.5, height: width * 0.5, marginBottom: 20 }}
-          resizeMode="contain"
-        />
-        <Image
-          source={require('../assets/images/app-assets/dtc1.png')}
-          style={{ width: width * 0.5, height: width * 0.5, marginBottom: 20 }}
-          resizeMode="contain"
-        />
-      </View>
-    </TouchableWithoutFeedback>
+    <View style={styles.container}>
+      <Image
+        source={require('../assets/images/app-assets/dict1.png')}
+        style={{ width: width * 0.5, height: width * 0.5, marginBottom: 20 }}
+        resizeMode="contain"
+      />
+      <Image
+        source={require('../assets/images/app-assets/dtc1.png')}
+        style={{ width: width * 0.5, height: width * 0.5 }}
+        resizeMode="contain"
+      />
+      <Text style={styles.checkingText}>Checking user data{dots}</Text>
+    </View>
   );
 }
 
@@ -53,5 +86,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: width * 0.05,
     backgroundColor: '#fff',
+  },
+  checkingText: {
+    marginTop: 20,
+    fontSize: 16,
+    fontStyle: 'italic',
+    color: '#888',
   },
 });

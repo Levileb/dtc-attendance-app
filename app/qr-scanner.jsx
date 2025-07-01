@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ref, push } from 'firebase/database';
-import { database } from '../FirebaseConfig'; // ✅ make sure this points to your Firebase config
+import { database } from '../FirebaseConfig';
 
 const { width, height } = Dimensions.get('window');
 
@@ -37,23 +37,41 @@ export default function Scanner() {
           const userDataJSON = await AsyncStorage.getItem('@userData');
           const userData = userDataJSON ? JSON.parse(userDataJSON) : null;
 
-          if (userData) {
-            const logEntry = {
-              user: userData,
-              scanResult: parsed,
-              timestamp: new Date().toISOString(),
-            };
-
-            await push(ref(database, 'logs'), logEntry);
-            setModalMessage('✅ Scanning Complete');
-            setQrData(JSON.stringify(parsed, null, 2));
+          if (!userData) {
+            setModalMessage('No user data found');
           } else {
-            setModalMessage('❌ No user data found');
+            const lastScanJSON = await AsyncStorage.getItem('@lastScan');
+            const lastScan = lastScanJSON ? JSON.parse(lastScanJSON) : null;
+            const now = new Date();
+
+            if (
+              lastScan &&
+              lastScan.qr === data &&
+              now - new Date(lastScan.timestamp) < 3 * 60 * 60 * 1000
+            ) {
+              setModalMessage('You have already scanned this QR');
+            } else {
+              const logEntry = {
+                user: userData,
+                scanResult: parsed,
+                timestamp: now.toISOString(),
+              };
+
+              await push(ref(database, 'logs'), logEntry);
+
+              await AsyncStorage.setItem(
+                '@lastScan',
+                JSON.stringify({ qr: data, timestamp: now.toISOString() })
+              );
+
+              setModalMessage('Scan Successful!');
+            }
           }
         } else {
           setModalMessage('❌ Invalid QR Code');
         }
       } catch (error) {
+        console.log('Scan error:', error);
         setModalMessage('❌ Invalid QR Code Format');
       }
 
@@ -67,13 +85,8 @@ export default function Scanner() {
     setScanned(false);
   };
 
-  if (!permission) {
-    return <Text>Requesting camera permission...</Text>;
-  }
-
-  if (!permission.granted) {
-    return <Text>No access to camera</Text>;
-  }
+  if (!permission) return <Text>Requesting camera permission...</Text>;
+  if (!permission.granted) return <Text>No access to camera</Text>;
 
   return (
     <SafeAreaView style={styles.safeArea}>

@@ -6,6 +6,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ref, push } from 'firebase/database';
+import { database } from '../FirebaseConfig'; // ✅ make sure this points to your Firebase config
 
 const { width, height } = Dimensions.get('window');
 
@@ -14,19 +17,46 @@ export default function Scanner() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
   const [qrData, setQrData] = useState('');
 
   useEffect(() => {
     if (!permission) requestPermission();
   }, [permission]);
 
-  const handleQRCodeScanned = (scanningResult) => {
+  const handleQRCodeScanned = async (scanningResult) => {
     const result = scanningResult?.nativeEvent || scanningResult;
     const { type, data } = result || {};
 
-    if (!scanned && type === 'org.iso.QRCode' && typeof data === 'string') {
+    if (!scanned && type === 'qr' && typeof data === 'string') {
       setScanned(true);
-      setQrData(data);
+
+      try {
+        const parsed = JSON.parse(data);
+        if (parsed && parsed.centerName && parsed.services) {
+          const userDataJSON = await AsyncStorage.getItem('@userData');
+          const userData = userDataJSON ? JSON.parse(userDataJSON) : null;
+
+          if (userData) {
+            const logEntry = {
+              user: userData,
+              scanResult: parsed,
+              timestamp: new Date().toISOString(),
+            };
+
+            await push(ref(database, 'logs'), logEntry);
+            setModalMessage('✅ Scanning Complete');
+            setQrData(JSON.stringify(parsed, null, 2));
+          } else {
+            setModalMessage('❌ No user data found');
+          }
+        } else {
+          setModalMessage('❌ Invalid QR Code');
+        }
+      } catch (error) {
+        setModalMessage('❌ Invalid QR Code Format');
+      }
+
       setModalVisible(true);
     }
   };
@@ -67,11 +97,13 @@ export default function Scanner() {
 
           <View style={styles.body}>
             <View style={styles.qr}>
-              <CameraView
-                style={StyleSheet.absoluteFill}
-                barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-                onBarcodeScanned={handleQRCodeScanned}
-              />
+              {!scanned && (
+                <CameraView
+                  style={StyleSheet.absoluteFill}
+                  barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                  onBarcodeScanned={handleQRCodeScanned}
+                />
+              )}
             </View>
 
             <Text style={styles.note}>
@@ -91,8 +123,9 @@ export default function Scanner() {
       <Modal visible={modalVisible} transparent animationType="fade">
         <View style={styles.modalBackground}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>QR Code Scanned!</Text>
-            <Text style={styles.modalData}>{qrData}</Text>
+            <Text style={styles.modalTitle}>Scan Result</Text>
+            <Text style={styles.modalData}>{modalMessage}</Text>
+            {qrData !== '' && <Text style={styles.modalData}>{qrData}</Text>}
             <Pressable style={styles.closeButton} onPress={handleCloseModal}>
               <Text style={styles.closeButtonText}>Close</Text>
             </Pressable>
@@ -172,6 +205,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginVertical: 24,
     overflow: 'hidden',
+    backgroundColor: '#000',
   },
   note: {
     fontSize: width * 0.03,
@@ -215,14 +249,16 @@ const styles = StyleSheet.create({
   },
   modalData: {
     fontSize: 16,
-    marginBottom: 20,
+    marginBottom: 8,
     textAlign: 'center',
+    color: '#333',
   },
   closeButton: {
     backgroundColor: '#007AFF',
     paddingVertical: 8,
     paddingHorizontal: 24,
     borderRadius: 8,
+    marginTop: 12,
   },
   closeButtonText: {
     color: '#fff',

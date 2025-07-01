@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Dimensions, Image, Text } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, StyleSheet, Dimensions, Image, Text, ActivityIndicator, Button } from 'react-native';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { database } from '../FirebaseConfig';
 import { ref, get, child } from 'firebase/database';
+import { Camera } from 'expo-camera';
 
 const { width } = Dimensions.get('window');
 
@@ -11,9 +12,24 @@ export default function HomeScreen() {
   const router = useRouter();
   const [dots, setDots] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [hasCameraPermission, setHasCameraPermission] = useState(null);
+  const [checkingPermission, setCheckingPermission] = useState(true);
   const dotStates = ['', '.', '..', '...'];
 
+  const requestPermission = useCallback(async () => {
+    setCheckingPermission(true);
+    const { status } = await Camera.requestCameraPermissionsAsync();
+    setHasCameraPermission(status === 'granted');
+    setCheckingPermission(false);
+  }, []);
+
   useEffect(() => {
+    requestPermission();
+  }, [requestPermission]);
+
+  useEffect(() => {
+    if (hasCameraPermission === null || hasCameraPermission === false) return;
+
     const dotInterval = setInterval(() => {
       setDots(prev => {
         const nextIndex = (dotStates.indexOf(prev) + 1) % dotStates.length;
@@ -70,7 +86,37 @@ export default function HomeScreen() {
     checkUserData();
 
     return () => clearInterval(dotInterval); // Clean up interval
-  }, [router]);
+  }, [router, hasCameraPermission]);
+
+  if (checkingPermission) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#888" />
+        <Text style={styles.checkingText}>Checking camera permission...</Text>
+      </View>
+    );
+  }
+
+  if (hasCameraPermission === false) {
+    return (
+      <View style={styles.container}>
+        <Image
+          source={require('../assets/images/app-assets/dict1.png')}
+          style={{ width: width * 0.5, height: width * 0.5, marginBottom: 20 }}
+          resizeMode="contain"
+        />
+        <Image
+          source={require('../assets/images/app-assets/dtc1.png')}
+          style={{ width: width * 0.5, height: width * 0.5 }}
+          resizeMode="contain"
+        />
+        <Text style={styles.checkingText}>
+          Camera permission is required to use this app.
+        </Text>
+        <Button title="Try Again" onPress={requestPermission} />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -104,5 +150,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontStyle: 'italic',
     color: '#888',
+    textAlign: 'center',
   },
 });

@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   textT: {
-    fontSize: width * 0.109,
+    fontSize: width * 0.1,
     fontFamily: 'BebasNeue',
     color: '#027CFF',
   },

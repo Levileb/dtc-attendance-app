@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
         color: '#027CFF',
     },
     textT: {
-        fontSize: width * 0.07,
+        fontSize: width * 0.06,
         color: '#027CFF',
         fontFamily: 'BebasNeue',
     },

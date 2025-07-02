@@ -7,7 +7,7 @@ import {
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ref, push } from 'firebase/database';
+import {query, orderByChild, limitToLast, get, ref, push  } from 'firebase/database';
 import { database } from '../FirebaseConfig';
 import { useFonts } from 'expo-font';
 
@@ -57,68 +57,76 @@ useFocusEffect(
   }, [])
 );
   
+const handleQRCodeScanned = async (scanningResult) => {
+  const result = scanningResult?.nativeEvent || scanningResult;
+  const { type, data } = result || {};
 
+  if (!scanned && type === 'qr' && typeof data === 'string') {
+    setScanned(true);
 
-  const handleQRCodeScanned = async (scanningResult) => {
-    const result = scanningResult?.nativeEvent || scanningResult;
-    const { type, data } = result || {};
+    try {
+      const parsed = JSON.parse(data);
+      if (parsed && parsed.centerName && parsed.services) {
+        const userDataJSON = await AsyncStorage.getItem('@userData');
+        const userData = userDataJSON ? JSON.parse(userDataJSON) : null;
 
-    if (!scanned && type === 'qr' && typeof data === 'string') {
-      setScanned(true);
-
-      try {
-        const parsed = JSON.parse(data);
-        if (parsed && parsed.centerName && parsed.services) {
-          const userDataJSON = await AsyncStorage.getItem('@userData');
-          const userData = userDataJSON ? JSON.parse(userDataJSON) : null;
-
-          if (!userData) {
-            setModalMessage('No user data found');
-          } else {
-            const lastScanJSON = await AsyncStorage.getItem('@lastScan');
-            const lastScan = lastScanJSON ? JSON.parse(lastScanJSON) : null;
-            const now = new Date();
-
-            if (
-              lastScan &&
-              lastScan.qr === data &&
-              now - new Date(lastScan.timestamp) < 3 * 60 * 60 * 1000
-            ) {
-              setModalMessage('You have already scanned this QR');
-            } else {
-              const logEntry = {
-                user: userData,
-                scanResult: parsed,
-                timestamp: now.toISOString(),
-              };
-
-              await push(ref(database, 'logs'), logEntry);
-
-              await AsyncStorage.setItem(
-                '@lastScan',
-                JSON.stringify({ qr: data, timestamp: now.toISOString() })
-              );
-
-              setModalMessage('Scan Successful!');
-              setModalVisible(true);
-              setTimeout(() => {
-                setModalVisible(false);
-                navigation.navigate('welcome');
-              }, 1200);
-              return; // Prevents showing modal twice
-            }
-          }
+        if (!userData) {
+          setModalMessage('No user data found');
         } else {
-          setModalMessage('❌ Invalid QR Code');
-        }
-      } catch (error) {
-        console.log('Scan error:', error);
-        setModalMessage('❌ Invalid QR Code Format');
-      }
+          const now = new Date();
 
-      setModalVisible(true);
+          // 🔍 Fetch the latest 10 logs from Firebase
+          const logsRef = query(ref(database, 'logs'), orderByChild('timestamp'), limitToLast(10));
+          const snapshot = await get(logsRef);
+          const logs = snapshot.exists() ? Object.values(snapshot.val()) : [];
+
+          const alreadyScanned = logs.some((log) => {
+            const isSameUser =
+              log.user?.name === userData.name &&
+              log.user?.barangay === userData.barangay &&
+              log.user?.city === userData.city &&
+              log.user?.birthdate === userData.birthdate;
+
+            const isSameQR = JSON.stringify(log.scanResult) === JSON.stringify(parsed);
+
+            const isWithin3Hours =
+              now - new Date(log.timestamp) < 3 * 60 * 60 * 1000;
+
+            return isSameUser && isSameQR && isWithin3Hours;
+          });
+
+          if (alreadyScanned) {
+            setModalMessage('⚠️ You have already scanned \n this QR code within the last 3 hours.');
+          } else {
+            const logEntry = {
+              user: userData,
+              scanResult: parsed,
+              timestamp: now.toISOString(),
+            };
+
+            await push(ref(database, 'logs'), logEntry);
+
+            setModalMessage('✅ Scan Successful!');
+            setModalVisible(true);
+
+            setTimeout(() => {
+              setModalVisible(false);
+              navigation.navigate('welcome');
+            }, 1200);
+            return;
+          }
+        }
+      } else {
+        setModalMessage('❌ Invalid QR Code');
+      }
+    } catch (error) {
+      console.log('Scan error:', error);
+      setModalMessage('❌ Invalid QR Code Format');
     }
-  };
+
+    setModalVisible(true);
+  }
+};  
 
   const handleCloseModal = () => {
     setModalVisible(false);

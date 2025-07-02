@@ -48,7 +48,7 @@ export default function GuideTwo() {
                          />
                         <TouchableOpacity
                             style={styles.button}
-                            onPress={() => navigation.navigate('guide-two')}
+                            onPress={() => navigation.navigate('qr-scanner')}
                         >
                             <Text style={styles.buttonText}>THANK YOU</Text>
                         </TouchableOpacity>

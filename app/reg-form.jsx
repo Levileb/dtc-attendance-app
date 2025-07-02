@@ -138,7 +138,7 @@ export default function Register() {
                 <MaterialIcons name="work" size={22} color="#888" />
                 <View style={[styles.pickerWrapper, { flex: 1 }]}>
                   <Picker selectedValue={sector} onValueChange={setSector}>
-                    {sector === '' && <Picker.Item label="Sector" value="" color="#888" enabled={false} />}
+                    {sector === '' && <Picker.Item label="Sector" value="" color="#888" enabled={true} />}
                     {sectorOptions.map(opt => (
                       <Picker.Item key={opt} label={opt} value={opt} />
                     ))}
@@ -153,7 +153,7 @@ export default function Register() {
                 <MaterialIcons name="wc" size={22} color="#888" />
                 <View style={[styles.pickerWrapper, { flex: 1 }]}>
                   <Picker selectedValue={gender} onValueChange={setGender}>
-                    {gender === '' && <Picker.Item label="Gender" value="" color="#888" enabled={false} />}
+                    {gender === '' && <Picker.Item label="Gender" value="" color="#888" enabled={true} />}
                     {genderOptions.map(opt => (
                       <Picker.Item key={opt} label={opt} value={opt} />
                     ))}
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   textT: {
-    fontSize: width * 0.085,
+    fontSize: width * 0.075,
     color: '#027CFF',
     fontFamily: 'BebasNeue',
   },

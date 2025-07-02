@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, Image, StyleSheet, Dimensions,
   TouchableOpacity, ScrollView, SafeAreaView,
-  Platform, StatusBar, Modal, Pressable
+  Platform, StatusBar, Modal, Pressable, BackHandler
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ref, push } from 'firebase/database';
@@ -19,10 +19,34 @@ export default function Scanner() {
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const [qrData, setQrData] = useState('');
+  const [cameraKey, setCameraKey] = useState(0);
 
-  useEffect(() => {
-    if (!permission) requestPermission();
-  }, [permission]);
+
+useEffect(() => {
+  if (!permission) requestPermission();
+}, [permission]);
+
+useFocusEffect(
+  React.useCallback(() => {
+    setScanned(false);
+    setCameraKey(prev => prev + 1); // Force re-render of CameraView
+  }, [])
+);
+
+
+useFocusEffect(
+  React.useCallback(() => {
+    const onBackPress = () => {
+      BackHandler.exitApp();
+      return true;
+    };
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+    return () => subscription.remove();
+  }, [])
+);
+
 
   const handleQRCodeScanned = async (scanningResult) => {
     const result = scanningResult?.nativeEvent || scanningResult;
@@ -112,6 +136,7 @@ export default function Scanner() {
             <View style={styles.qr}>
               {!scanned && (
                 <CameraView
+                  key={cameraKey}
                   style={StyleSheet.absoluteFill}
                   barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
                   onBarcodeScanned={handleQRCodeScanned}
@@ -125,9 +150,9 @@ export default function Scanner() {
 
             <TouchableOpacity
               style={styles.button}
-              onPress={() => navigation.navigate('reg-form')}
+              onPress={() => navigation.navigate('welcome')}
             >
-              <Text style={styles.buttonText}>REGISTER</Text>
+              <Text style={styles.buttonText}>EDIT INFO</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -250,31 +275,29 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: '#fff',
-    padding: 24,
-    borderRadius: 12,
-    alignItems: 'center',
+    padding: 28,
+    borderRadius: 4,
     minWidth: 250,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
+    textAlign: 'left',
     marginBottom: 12,
+    color: '#027CFF',
   },
   modalData: {
     fontSize: 16,
     marginBottom: 8,
-    textAlign: 'center',
-    color: '#333',
+    textAlign: 'left',
+    fontStyle:'italic',
+    color: '#222', 
   },
   closeButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 8,
-    paddingHorizontal: 24,
-    borderRadius: 8,
     marginTop: 12,
+    alignItems: 'flex-end', 
   },
   closeButtonText: {
-    color: '#fff',
     fontSize: 16,
   },
 });

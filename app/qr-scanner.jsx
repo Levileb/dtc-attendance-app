@@ -2,17 +2,27 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, Image, StyleSheet, Dimensions,
   TouchableOpacity, ScrollView, SafeAreaView,
-  Platform, StatusBar, Modal, Pressable, BackHandler
-} from 'react-native';
+  Platform, StatusBar, Modal, Pressable, BackHandler, 
+  ActivityIndicator } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ref, push } from 'firebase/database';
 import { database } from '../FirebaseConfig';
+import { useFonts } from 'expo-font';
 
 const { width, height } = Dimensions.get('window');
 
 export default function Scanner() {
+
+  const [fontsLoaded] = useFonts({
+      'BebasNeue': require('../assets/fonts/BebasNeue-Regular.ttf'),
+      'Roboto': require('../assets/fonts/Roboto-Light.ttf'),
+      'Roboto Italic': require('../assets/fonts/Roboto-LightItalic.ttf'),
+    });
+
+  
+
   const navigation = useNavigation();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
@@ -20,6 +30,7 @@ export default function Scanner() {
   const [modalMessage, setModalMessage] = useState('');
   const [qrData, setQrData] = useState('');
   const [cameraKey, setCameraKey] = useState(0);
+  
 
 
 useEffect(() => {
@@ -42,10 +53,10 @@ useFocusEffect(
     };
 
     const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
-
     return () => subscription.remove();
   }, [])
 );
+  
 
 
   const handleQRCodeScanned = async (scanningResult) => {
@@ -89,6 +100,12 @@ useFocusEffect(
               );
 
               setModalMessage('Scan Successful!');
+              setModalVisible(true);
+              setTimeout(() => {
+                setModalVisible(false);
+                navigation.navigate('welcome');
+              }, 1200);
+              return; // Prevents showing modal twice
             }
           }
         } else {
@@ -111,6 +128,17 @@ useFocusEffect(
 
   if (!permission) return <Text>Requesting camera permission...</Text>;
   if (!permission.granted) return <Text>No access to camera</Text>;
+
+if (!fontsLoaded) {
+  return (
+    <View style={styles.loading}>
+      <ActivityIndicator size="large" color="#027CFF" />
+      <Text style={{ fontFamily: Platform.OS === 'android' ? 'sans-serif' : 'System' }}>
+        Loading fonts...
+      </Text>
+    </View>
+  );
+}
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -150,7 +178,7 @@ useFocusEffect(
 
             <TouchableOpacity
               style={styles.button}
-              onPress={() => navigation.navigate('welcome')}
+              onPress={() => navigation.navigate('edit-info')}
             >
               <Text style={styles.buttonText}>EDIT INFO</Text>
             </TouchableOpacity>
@@ -220,14 +248,15 @@ const styles = StyleSheet.create({
     gap: 7,
   },
   textT: {
-    fontSize: width * 0.045,
-    fontWeight: 'bold',
+    fontSize: width * 0.08,
     color: '#027CFF',
+    fontFamily: 'BebasNeue',
   },
   textB: {
     fontSize: width * 0.035,
     color: '#000',
     textAlign: 'center',
+    fontFamily: 'Roboto',
     paddingHorizontal: 5,
   },
   body: {
@@ -250,6 +279,7 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 15,
     textAlign: 'left',
+    fontFamily: 'Roboto',
   },
   button: {
     marginTop: 20,
@@ -266,6 +296,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: width * 0.05,
+    fontFamily: 'Roboto',
   },
   modalBackground: {
     flex: 1,
@@ -280,8 +311,8 @@ const styles = StyleSheet.create({
     minWidth: 250,
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 29,
+    fontFamily: 'BebasNeue',
     textAlign: 'left',
     marginBottom: 12,
     color: '#027CFF',
@@ -290,8 +321,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
     textAlign: 'left',
-    fontStyle:'italic',
-    color: '#222', 
+    fontFamily: 'Roboto Italic',
+    color: '#666', 
   },
   closeButton: {
     marginTop: 12,
@@ -299,5 +330,7 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     fontSize: 16,
+    fontFamily: 'Roboto',
+    color: '#999',
   },
 });

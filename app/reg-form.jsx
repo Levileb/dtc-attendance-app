@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, Image, StyleSheet, Dimensions, TouchableOpacity,
-  ScrollView, SafeAreaView, Platform, StatusBar, TextInput, Alert
+  ScrollView, SafeAreaView, Platform, StatusBar, TextInput, Alert, ActivityIndicator
 } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
@@ -10,11 +10,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { database } from '../FirebaseConfig';
 import { ref, push, set } from 'firebase/database';
 import { useNavigation } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
 
 const { width, height } = Dimensions.get('window');
 
 export default function Register() {
-
+  const [fontsLoaded] = useFonts({
+    'BebasNeue': require('../assets/fonts/BebasNeue-Regular.ttf'),
+    'Roboto': require('../assets/fonts/Roboto-Light.ttf'),
+    'Roboto Italic': require('../assets/fonts/Roboto-LightItalic.ttf'),
+  });
 
   const navigation = useNavigation();
 
@@ -82,6 +87,17 @@ export default function Register() {
       Alert.alert("Error", "Failed to save user data.");
     }
   };
+
+  if (!fontsLoaded) {
+    return (
+      <View style={styles.loading}>     
+        <ActivityIndicator size="large" color="#027CFF" />
+        <Text style={{ fontFamily: Platform.OS === 'android' ? 'sans-serif' : 'System' }}>
+          Loading fonts...
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -232,15 +248,16 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   textT: {
-    fontSize: width * 0.045,
-    fontWeight: 'bold',
+    fontSize: width * 0.085,
     color: '#027CFF',
+    fontFamily: 'BebasNeue',
   },
   textB: {
     fontSize: width * 0.035,
     color: '#000',
     textAlign: 'center',
     marginTop: 5,
+    fontFamily: 'Roboto',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -249,12 +266,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     marginVertical: 6,
+    fontFamily: 'Roboto',
   },
   input: {
     flex: 1,
     padding: 10,
     fontSize: width * 0.04,
     color: '#000',
+    fontFamily: 'Roboto',
   },
   pickerContainer: {
     marginTop: 3,
@@ -268,7 +287,7 @@ const styles = StyleSheet.create({
     fontSize: width * 0.03,
     color: '#666',
     marginTop: 15,
-    textAlign: 'left',
+    fontFamily: 'Roboto Italic',
   },
   button: {
     marginTop: 20,
@@ -285,6 +304,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: width * 0.049,
+    fontFamily: 'Roboto',
   },
   body: {
     marginTop: 10,

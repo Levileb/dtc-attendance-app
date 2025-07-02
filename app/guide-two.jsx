@@ -1,17 +1,17 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, Dimensions,
          TouchableOpacity, ScrollView, SafeAreaView, 
-         Platform, StatusBar, ActivityIndicator  } from 'react-native';
+         Platform, StatusBar, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 
 const { width, height } = Dimensions.get('window');
 
-export default function StarterScreen() {
+export default function GuideTwo() {
+    
     const [fontsLoaded] = useFonts({
         'BebasNeue': require('../assets/fonts/BebasNeue-Regular.ttf'),
         'Roboto': require('../assets/fonts/Roboto-Light.ttf'),
-        'Roboto Italic': require('../assets/fonts/Roboto-LightItalic.ttf'),
       });
     const navigation = useNavigation();
 
@@ -38,50 +38,19 @@ export default function StarterScreen() {
                 </View>
                 <View style={styles.card}>
                     <View style={styles.title}>
-                        <Text style={styles.textT}>DIGITAL TRANSFORMATION CENTER</Text>
-                        <Text style={styles.textB}>
-                            The DICT offers free Digital Transformation Centers for freelancers, students, remote workers, and startups.
-                            This app tracks daily usage to help us enhance our services and sustain the program.
-                        </Text>
-                        <Text style={styles.textsT}>HOW IT WORKS</Text>
+                        <Text style={styles.textT}>GENERAL USER GUIDELINES AND POLICIES</Text>
                     </View>
                     <View style={styles.body}>
-                        <View style={styles.icon}>
-                            <Image
-                                source={require('../assets/images/app-assets/write.png')}
-                                style={styles.iconImage}
-                                resizeMode="contain"
-                            />
-                            <Text style={styles.textsB}>Fill out the form with your basic information.</Text>
-                        </View>
-                        <View style={styles.icon}>
-                            <Image
-                                source={require('../assets/images/app-assets/scan.png')}
-                                style={styles.iconImage}
-                                resizeMode="contain"
-                            />
-                            <Text style={styles.textsB}>
-                                When you visit any Digital Transformation Center, scan the QR code posted at the entrance.
-                            </Text>
-                        </View>
-                        <View style={styles.icon}>
-                            <Image
-                                source={require('../assets/images/app-assets/check.png')}
-                                style={styles.iconImage}
-                                resizeMode="contain"
-                            />
-                            <Text style={styles.textsB}>
-                                That’s it! Your attendance will be recorded automatically — no login required.
-                            </Text>
-                        </View>
-                        <Text style={styles.note}>
-                            Note: Your information is securely stored only on your device and used only for attendance monitoring purposes.
-                        </Text>
+                         <Image
+                        source={require('../assets/images/app-assets/rule2.png')}
+                        style={styles.rules}
+                        resizeMode="contain"
+                         />
                         <TouchableOpacity
                             style={styles.button}
-                            onPress={() => navigation.navigate('reg-form')}
+                            onPress={() => navigation.navigate('guide-two')}
                         >
-                            <Text style={styles.buttonText}>REGISTER</Text>
+                            <Text style={styles.buttonText}>THANK YOU</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -120,6 +89,13 @@ const styles = StyleSheet.create({
         height: width * 0.5,
         marginBottom: 10,
     },
+     rules: {
+        width: width * 1.05,
+        height: width * 1.05,
+        marginBottom: 10,
+        alignSelf: 'center',
+        marginVertical: 20,
+    },
     card: {
         backgroundColor: '#fff',
         justifyContent: 'center',
@@ -148,7 +124,6 @@ const styles = StyleSheet.create({
         color: '#000',
         textAlign: 'center',
         paddingHorizontal: 5,
-        fontFamily: 'Roboto',
     },
     textsB: {
         fontSize: width * 0.035,
@@ -157,7 +132,6 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         flex: 1,
         flexWrap: 'wrap',
-        fontFamily: 'Roboto',
     },
     icon: {
         flexDirection: 'row',
@@ -174,20 +148,20 @@ const styles = StyleSheet.create({
     },
     textsT: {
         marginTop: 30,
-        fontSize: width * 0.075,
-        fontFamily: 'BebasNeue',
+        fontSize: width * 0.045,
+        fontWeight: 'bold',
         color: '#027CFF',
     },
     textT: {
-        fontSize: width * 0.086,
-        fontFamily: 'BebasNeue',
+        fontSize: width * 0.07,
         color: '#027CFF',
+        fontFamily: 'BebasNeue',
     },
     note: {
         fontSize: width * 0.03,
         color: '#666',
         marginTop: 15,
-        fontFamily: 'Roboto Italic',
+        textAlign: 'left',
     },
     button: {
         marginTop: 20,
@@ -204,6 +178,6 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#fff',
         fontSize: width * 0.05,
-        fontFamily: 'Roboto',
+         fontFamily: 'Roboto',
     },
 });

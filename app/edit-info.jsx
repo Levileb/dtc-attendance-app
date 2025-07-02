@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, Image, StyleSheet, Dimensions, TouchableOpacity,
-    ScrollView, SafeAreaView, Platform, StatusBar, TextInput, Alert
+    ScrollView, SafeAreaView, Platform, StatusBar, TextInput, Alert, ActivityIndicator
 } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
@@ -10,10 +10,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { database } from '../FirebaseConfig';
 import { ref, get, update } from 'firebase/database';
 import { useNavigation } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
 
 const { width, height } = Dimensions.get('window');
 
 export default function EditInfo() {
+     const [fontsLoaded] = useFonts({
+        'BebasNeue': require('../assets/fonts/BebasNeue-Regular.ttf'),
+        'Roboto': require('../assets/fonts/Roboto-Light.ttf'),
+      });
+
     const navigation = useNavigation();
     const [loading, setLoading] = useState(false);
 
@@ -134,6 +140,17 @@ export default function EditInfo() {
         }
     };
 
+    if (!fontsLoaded) {
+        return (
+          <View style={styles.loading}>
+            <ActivityIndicator size="large" color="#027CFF" />
+            <Text style={{ fontFamily: Platform.OS === 'android' ? 'sans-serif' : 'System' }}>
+              Loading fonts...
+            </Text>
+          </View>
+        );
+      }
+
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -172,32 +189,39 @@ export default function EditInfo() {
                             <View style={[styles.inputContainer, { paddingHorizontal: 10 }]}>
                                 <MaterialIcons name="work" size={22} color="#888" />
                                 <View style={[styles.pickerWrapper, { flex: 1 }]}>
-                                    <Picker selectedValue={sector} onValueChange={setSector}>
-                                        {sector === '' && <Picker.Item label="Sector" value="" color="#888" enabled={false} />}
+                                    <Picker
+                                        selectedValue={sector}
+                                        onValueChange={setSector}
+                                        style={{ fontFamily: 'Roboto', color: '#000' }}
+                                        itemStyle={{ fontFamily: 'Roboto', color: '#000' }}
+                                    >
+                                        {sector === '' && <Picker.Item label="Sector" value="" color="#888" enabled={false} style={{ fontFamily: 'Roboto' }} />}
                                         {sectorOptions.map(opt => (
-                                            <Picker.Item key={opt} label={opt} value={opt} />
+                                            <Picker.Item key={opt} label={opt} value={opt} style={{ fontFamily: 'Roboto' }} />
                                         ))}
                                     </Picker>
                                 </View>
                             </View>
                         </View>
 
-                        {/* Gender Picker */}
                         <View style={styles.pickerContainer}>
                             <View style={[styles.inputContainer, { paddingHorizontal: 10 }]}>
                                 <MaterialIcons name="wc" size={22} color="#888" />
                                 <View style={[styles.pickerWrapper, { flex: 1 }]}>
-                                    <Picker selectedValue={gender} onValueChange={setGender}>
-                                        {gender === '' && <Picker.Item label="Gender" value="" color="#888" enabled={false} />}
+                                    <Picker
+                                        selectedValue={gender}
+                                        onValueChange={setGender}
+                                        style={{ fontFamily: 'Roboto', color: '#000' }}
+                                        itemStyle={{ fontFamily: 'Roboto', color: '#000' }}
+                                    >
+                                        {gender === '' && <Picker.Item label="Gender" value="" color="#888" enabled={false} style={{ fontFamily: 'Roboto' }} />}
                                         {genderOptions.map(opt => (
-                                            <Picker.Item key={opt} label={opt} value={opt} />
+                                            <Picker.Item key={opt} label={opt} value={opt} style={{ fontFamily: 'Roboto' }} />
                                         ))}
                                     </Picker>
                                 </View>
                             </View>
                         </View>
-
-                        {/* Birthdate Picker */}
                         <TouchableOpacity style={styles.inputContainer} onPress={() => setShowDatePicker(true)}>
                             <MaterialIcons name="calendar-today" size={22} color="#888" />
                             <TextInput
@@ -278,12 +302,13 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   textT: {
-    fontSize: width * 0.045,
-    fontWeight: 'bold',
+    fontSize: width * 0.09,
+    fontFamily: 'BebasNeue',
     color: '#027CFF',
   },
   textB: {
     fontSize: width * 0.035,
+    fontFamily: 'Roboto',
     color: '#000',
     textAlign: 'center',
     marginTop: 5,
@@ -301,20 +326,24 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: width * 0.04,
     color: '#000',
+    fontFamily: 'Roboto',
   },
   pickerContainer: {
     marginTop: 3,
+    
   },
   pickerWrapper: {
     backgroundColor: '#f2f2f2',
     borderRadius: 8,
     paddingHorizontal: 5,
+
   },
   note: {
     fontSize: width * 0.03,
     color: '#666',
     marginTop: 15,
     textAlign: 'left',
+    fontFamily: 'Roboto Italic',
   },
   button: {
     marginTop: 20,
@@ -331,6 +360,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: width * 0.049,
+    fontFamily: 'Roboto',
   },
   body: {
     marginTop: 10,

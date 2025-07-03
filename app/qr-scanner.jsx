@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, Image, StyleSheet, Dimensions,
   TouchableOpacity, ScrollView, SafeAreaView,
-  Platform, StatusBar, Modal, Pressable, BackHandler, 
+  Platform, Modal, Pressable, BackHandler, 
   ActivityIndicator } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {query, orderByChild, limitToLast, get, ref, push  } from 'firebase/database';
@@ -21,17 +21,16 @@ export default function Scanner() {
       'Roboto Italic': require('../assets/fonts/Roboto-LightItalic.ttf'),
     });
 
-  
-
-  const navigation = useNavigation();
+  const router = useRouter();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [modalMessage, setModalMessage] = useState('');
   const [qrData, setQrData] = useState('');
   const [cameraKey, setCameraKey] = useState(0);
-  
-
+  const [isProcessing, setIsProcessing] = useState(false);
+  const timeoutRef = useRef(null);
+  const navigationRef = useRef(false);
 
 useEffect(() => {
   if (!permission) requestPermission();
@@ -39,11 +38,31 @@ useEffect(() => {
 
 useFocusEffect(
   React.useCallback(() => {
+    // Reset all scanner states when screen gains focus
     setScanned(false);
-    setCameraKey(prev => prev + 1); // Force re-render of CameraView
+    setModalVisible(false);
+    setModalMessage('');
+    setQrData('');
+    setIsProcessing(false);
+    setCameraKey(prev => prev + 1);
+    navigationRef.current = false;
+    
+    // Clear any pending timeouts
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
   }, [])
 );
 
+// Cleanup timeout when component unmounts
+useEffect(() => {
+  return () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+  };
+}, []);
 
 useFocusEffect(
   React.useCallback(() => {
@@ -61,78 +80,103 @@ const handleQRCodeScanned = async (scanningResult) => {
   const result = scanningResult?.nativeEvent || scanningResult;
   const { type, data } = result || {};
 
-  if (!scanned && type === 'qr' && typeof data === 'string') {
-    setScanned(true);
+  // Prevent multiple scans and navigation
+  if (isProcessing || scanned || navigationRef.current || !type || type !== 'qr' || typeof data !== 'string') {
+    return;
+  }
 
-    try {
-      const parsed = JSON.parse(data);
-      if (parsed && parsed.centerName && parsed.services) {
-        const userDataJSON = await AsyncStorage.getItem('@userData');
-        const userData = userDataJSON ? JSON.parse(userDataJSON) : null;
+  setIsProcessing(true);
+  setScanned(true);
 
-        if (!userData) {
-          setModalMessage('No user data found');
-        } else {
-          const now = new Date();
+  try {
+    const parsed = JSON.parse(data);
+    if (parsed && parsed.centerName && parsed.services) {
+      const userDataJSON = await AsyncStorage.getItem('@userData');
+      const userData = userDataJSON ? JSON.parse(userDataJSON) : null;
 
-          // 🔍 Fetch the latest 10 logs from Firebase
-          const logsRef = query(ref(database, 'logs'), orderByChild('timestamp'), limitToLast(10));
-          const snapshot = await get(logsRef);
-          const logs = snapshot.exists() ? Object.values(snapshot.val()) : [];
-
-          const alreadyScanned = logs.some((log) => {
-            const isSameUser =
-              log.user?.name === userData.name &&
-              log.user?.barangay === userData.barangay &&
-              log.user?.city === userData.city &&
-              log.user?.birthdate === userData.birthdate;
-
-            const isSameQR = JSON.stringify(log.scanResult) === JSON.stringify(parsed);
-
-            const isWithin3Hours =
-              now - new Date(log.timestamp) < 3 * 60 * 60 * 1000;
-
-            return isSameUser && isSameQR && isWithin3Hours;
-          });
-
-          if (alreadyScanned) {
-            setModalMessage('⚠️ You have already scanned \n this QR code within the last 3 hours.');
-          } else {
-            const logEntry = {
-              user: userData,
-              scanResult: parsed,
-              timestamp: now.toISOString(),
-            };
-
-            await push(ref(database, 'logs'), logEntry);
-
-            setModalMessage('✅ Scan Successful!');
-            setModalVisible(true);
-
-            setTimeout(() => {
-              setModalVisible(false);
-              navigation.navigate('welcome');
-            }, 1200);
-            return;
-          }
-        }
-      } else {
-        setModalMessage('❌ Invalid QR Code');
+      if (!userData) {
+        setModalMessage('No user data found');
+        setModalVisible(true);
+        setIsProcessing(false);
+        return;
       }
-    } catch (error) {
-      console.log('Scan error:', error);
-      setModalMessage('❌ Invalid QR Code Format');
-    }
 
+      const now = new Date();
+
+      // Fetch the latest 10 logs from Firebase
+      const logsRef = query(ref(database, 'logs'), orderByChild('timestamp'), limitToLast(10));
+      const snapshot = await get(logsRef);
+      const logs = snapshot.exists() ? Object.values(snapshot.val()) : [];
+
+      const alreadyScanned = logs.some((log) => {
+        const isSameUser =
+          log.user?.name === userData.name &&
+          log.user?.barangay === userData.barangay &&
+          log.user?.city === userData.city &&
+          log.user?.birthdate === userData.birthdate;
+
+        const isSameQR = JSON.stringify(log.scanResult) === JSON.stringify(parsed);
+
+        const isWithin3Hours =
+          now - new Date(log.timestamp) < 3 * 60 * 60 * 1000;
+
+        return isSameUser && isSameQR && isWithin3Hours;
+      });
+
+      if (alreadyScanned) {
+        setModalMessage('You have already scanned \n the QR code.');
+        setModalVisible(true);
+        setIsProcessing(false);
+        return;
+      }
+
+      // Save scan result
+      const logEntry = {
+        user: userData,
+        scanResult: parsed,
+        timestamp: now.toISOString(),
+      };
+
+      await push(ref(database, 'logs'), logEntry);
+
+      setModalMessage('Scan Successful!');
+      setModalVisible(true);
+
+      // Prevent multiple navigation attempts
+      navigationRef.current = true;
+
+      // Use ref to track timeout
+      timeoutRef.current = setTimeout(() => {
+        setModalVisible(false);
+        setIsProcessing(false);
+        router.push('/welcome');
+      }, 1200);
+      
+    } else {
+      setModalMessage('Invalid QR Code');
+      setModalVisible(true);
+      setIsProcessing(false);
+    }
+  } catch (error) {
+    console.log('Scan error:', error);
+    setModalMessage('Invalid QR Code Format');
     setModalVisible(true);
+    setIsProcessing(false);
   }
 };  
 
-  const handleCloseModal = () => {
-    setModalVisible(false);
-    setQrData('');
-    setScanned(false);
-  };
+const handleCloseModal = () => {
+  setModalVisible(false);
+  setQrData('');
+  setScanned(false);
+  setIsProcessing(false);
+  
+  // Clear timeout if modal is closed manually
+  if (timeoutRef.current) {
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = null;
+  }
+};
 
   if (!permission) return <Text>Requesting camera permission...</Text>;
   if (!permission.granted) return <Text>No access to camera</Text>;
@@ -170,7 +214,7 @@ if (!fontsLoaded) {
 
           <View style={styles.body}>
             <View style={styles.qr}>
-              {!scanned && (
+              {!scanned && !isProcessing && (
                 <CameraView
                   key={cameraKey}
                   style={StyleSheet.absoluteFill}
@@ -178,15 +222,21 @@ if (!fontsLoaded) {
                   onBarcodeScanned={handleQRCodeScanned}
                 />
               )}
+              {isProcessing && (
+                <View style={styles.processingOverlay}>
+                  <ActivityIndicator size="large" color="#027CFF" />
+                  <Text style={styles.processingText}>Processing...</Text>
+                </View>
+              )}
             </View>
-
+             <Text style={styles.scanText}>SCAN QR CODE</Text>
             <Text style={styles.note}>
               Note: Your information is securely stored only on your device and used only for attendance monitoring purposes.
             </Text>
 
             <TouchableOpacity
               style={styles.button}
-              onPress={() => navigation.navigate('edit-info')}
+              onPress={() => router.push('/edit-info')}
             >
               <Text style={styles.buttonText}>EDIT INFO</Text>
             </TouchableOpacity>
@@ -211,11 +261,16 @@ if (!fontsLoaded) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  loading: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
+  // safeArea: {
+  //   flex: 1,
+  //   backgroundColor: '#fff',
+  //   paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  // },
   scrollContainer: {
     alignItems: 'center',
     paddingBottom: 30,
@@ -256,9 +311,10 @@ const styles = StyleSheet.create({
     gap: 7,
   },
   textT: {
-    fontSize: width * 0.08,
+    fontSize: width * 0.078,
     color: '#027CFF',
     fontFamily: 'BebasNeue',
+    textAlign: 'center',
   },
   textB: {
     fontSize: width * 0.035,
@@ -281,6 +337,24 @@ const styles = StyleSheet.create({
     marginVertical: 24,
     overflow: 'hidden',
     backgroundColor: '#000',
+  },
+  scanText: {
+    fontSize: width * 0.06,
+    color: '#027CFF',
+    fontFamily: 'BebasNeue',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  processingOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+  },
+  processingText: {
+    color: '#fff',
+    marginTop: 10,
+    fontFamily: 'Roboto',
   },
   note: {
     fontSize: width * 0.03,

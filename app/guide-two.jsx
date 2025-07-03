@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, Dimensions,
          TouchableOpacity, ScrollView, SafeAreaView, 
-         Platform, StatusBar, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+         Platform, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useFonts } from 'expo-font';
 
 const { width, height } = Dimensions.get('window');
@@ -13,7 +13,7 @@ export default function GuideTwo() {
         'BebasNeue': require('../assets/fonts/BebasNeue-Regular.ttf'),
         'Roboto': require('../assets/fonts/Roboto-Light.ttf'),
       });
-    const navigation = useNavigation();
+    const router = useRouter();
 
      if (!fontsLoaded) {
         return (
@@ -41,14 +41,17 @@ export default function GuideTwo() {
                         <Text style={styles.textT}>GENERAL USER GUIDELINES AND POLICIES</Text>
                     </View>
                     <View style={styles.body}>
-                         <Image
-                        source={require('../assets/images/app-assets/rule2.png')}
-                        style={styles.rules}
-                        resizeMode="contain"
-                         />
+                        <Image
+                            source={require('../assets/images/app-assets/rule2.png')}
+                            style={styles.rules}
+                            resizeMode="contain"
+                        />
                         <TouchableOpacity
                             style={styles.button}
-                            onPress={() => navigation.navigate('qr-scanner')}
+                            onPress={() => {
+                                // Use expo-router's replace method to reset the navigation stack
+                                router.replace('/qr-scanner');
+                            }}
                         >
                             <Text style={styles.buttonText}>THANK YOU</Text>
                         </TouchableOpacity>
@@ -60,11 +63,16 @@ export default function GuideTwo() {
 }
 
 const styles = StyleSheet.create({
-    safeArea: {
+    loading: {
         flex: 1,
-        backgroundColor: '#fff',
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
+    // safeArea: {
+    //     flex: 1,
+    //     backgroundColor: '#fff',
+    //     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    // },
     scrollContainer: {
         alignItems: 'center',
         paddingBottom: 30,

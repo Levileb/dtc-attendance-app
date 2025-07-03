@@ -121,15 +121,22 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Image
-        source={require('../assets/images/app-assets/dict1.png')}
-        style={{ width: width * 0.5, height: width * 0.5, marginBottom: 20 }}
+        source={require('../assets/images/app-assets/smwname.png')}
+        style={{ width: width * 0.6, height: width * 0.6 }}
         resizeMode="contain"
       />
-      <Image
-        source={require('../assets/images/app-assets/dtc1.png')}
-        style={{ width: width * 0.5, height: width * 0.5 }}
-        resizeMode="contain"
-      />
+      <View style={styles.container2}>
+        <Image
+          source={require('../assets/images/app-assets/dict1.png')}
+          style={{ width: width * 0.3, height: width * 0.3 }}
+          resizeMode="contain"
+        />
+        <Image
+          source={require('../assets/images/app-assets/dtc1.png')}
+          style={{ width: width * 0.3, height: width * 0.3 }}
+          resizeMode="contain"
+        />
+      </View>
       <Text style={styles.checkingText}>
         {deleting ? 'Deleting user data' + dots : 'Checking user data' + dots}
       </Text>
@@ -140,13 +147,20 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: width * 0.05,
+    backgroundColor: '#fff',
+  },
+  container2: {
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     padding: width * 0.05,
     backgroundColor: '#fff',
   },
   checkingText: {
-    marginTop: 20,
     fontSize: 16,
     fontStyle: 'italic',
     color: '#888',

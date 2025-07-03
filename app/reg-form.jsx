@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, Image, StyleSheet, Dimensions, TouchableOpacity,
-  ScrollView, SafeAreaView, Platform, StatusBar, TextInput, Alert, ActivityIndicator
+  ScrollView, SafeAreaView, Platform, TextInput, Alert, ActivityIndicator
 } from 'react-native';
 import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
@@ -34,7 +34,8 @@ export default function Register() {
   const [birthdate, setBirthdate] = useState('');
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const sectorOptions = ['Student', 'Teacher', 'Government Employee', 'Private Employee', 'Entrepreneur', 'Unemployed', 'Others'];
+  const sectorOptions = ['NGA', 'LGU', 'Student/SUC', 'PWDs', 'PDLs', 'Indigenous People',
+                         'Senior Citizens', 'OSY', 'Farmers/Fisherfolks', 'MSME/Enrepreneurs', 'DICT', 'Others'];
   const genderOptions = ['Male', 'Female', 'Other', 'Prefer not to say'];
 
   const handleDateChange = (event, selectedDate) => {
@@ -205,11 +206,11 @@ export default function Register() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
+  // safeArea: {
+  //   flex: 1,
+  //   backgroundColor: '#fff',
+  //   paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  // },
   scrollContainer: {
     alignItems: 'center',
     paddingBottom: 30,

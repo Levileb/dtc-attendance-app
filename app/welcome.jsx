@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import {
   View, Text, Image, StyleSheet, Dimensions, TouchableOpacity, ScrollView,
-  SafeAreaView, Platform, StatusBar, ActivityIndicator, BackHandler } from 'react-native';
+  SafeAreaView, Platform, ActivityIndicator, BackHandler } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 
@@ -72,11 +72,11 @@ export default function Welcome() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#027CFF',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
+  // safeArea: {
+  //   flex: 1,
+  //   backgroundColor: '#027CFF',
+  //   paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  // },
   scrollContainer: {
     alignItems: 'center',
     paddingBottom: 30,

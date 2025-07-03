@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, Dimensions,
          TouchableOpacity, ScrollView, SafeAreaView, 
-         Platform, StatusBar, ActivityIndicator  } from 'react-native';
+         Platform,  } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 
@@ -18,10 +18,6 @@ export default function StarterScreen() {
      if (!fontsLoaded) {
         return (
           <View style={styles.loading}>
-            <ActivityIndicator size="large" color="#027CFF" />
-            <Text style={{ fontFamily: Platform.OS === 'android' ? 'sans-serif' : 'System' }}>
-              Loading fonts...
-            </Text>
           </View>
         );
       }
@@ -91,11 +87,11 @@ export default function StarterScreen() {
 }
 
 const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#fff',
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-    },
+    // safeArea: {
+    //     flex: 1,
+    //     backgroundColor: '#fff',
+    //     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    // },
     scrollContainer: {
         alignItems: 'center',
         paddingBottom: 30,
@@ -179,7 +175,7 @@ const styles = StyleSheet.create({
         color: '#027CFF',
     },
     textT: {
-        fontSize: width * 0.086,
+        fontSize: width * 0.078,
         fontFamily: 'BebasNeue',
         color: '#027CFF',
     },

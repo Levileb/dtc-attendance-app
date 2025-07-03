@@ -1,22 +1,21 @@
 {
   "expo": {
-    "name": "DTC APP",
+    "name": "Smart Log",
     "slug": "dtc-attendance-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/app-assets/dict1.png",
+    "icon": "./assets/images/app-assets/smartlog.png",
     "scheme": "dtcattendanceapp",
-    "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/app-assets/dict1.png",
-        "backgroundColor": "transparent"
+        "foregroundImage": "./assets/images/app-assets/smartlog.png",
+        "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"

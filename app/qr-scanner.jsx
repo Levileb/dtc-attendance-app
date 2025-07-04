@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, Image, StyleSheet, Dimensions,
   TouchableOpacity, ScrollView, SafeAreaView,
-  Platform, Modal, Pressable, BackHandler, 
+  Platform, Modal, Pressable, BackHandler, StatusBar,
   ActivityIndicator } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -268,13 +268,12 @@ const styles = StyleSheet.create({
   },
   // safeArea: {
   //   flex: 1,
-  //   backgroundColor: '#fff',
+  //   backgroundColor: '#027CFF',
   //   paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   // },
   scrollContainer: {
     alignItems: 'center',
     paddingBottom: 30,
-    backgroundColor: '#fff',
   },
   header: {
     width: '100%',

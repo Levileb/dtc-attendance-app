@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     backgroundColor: '#027CFF',
-    paddingTop: height * 0.02,
+    paddingTop: height * 0.05,
     paddingBottom: height * 0.1,
     marginBottom: 20,
     borderBottomLeftRadius: 14,
@@ -242,11 +242,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 10,
     elevation: 6,
-    marginTop: -height * 0.13,
+    marginTop: -height * 0.15,
   },
   title: {
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 10,
   },
   textT: {
     fontSize: width * 0.075,

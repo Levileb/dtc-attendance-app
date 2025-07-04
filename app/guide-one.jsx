@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, Dimensions,
          TouchableOpacity, ScrollView, SafeAreaView, 
-         Platform,  ActivityIndicator } from 'react-native';
+         Platform,  ActivityIndicator, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 
@@ -62,13 +62,12 @@ export default function GuideOne() {
 const styles = StyleSheet.create({
     // safeArea: {
     //     flex: 1,
-    //     backgroundColor: '#fff',
+    //     backgroundColor: '#027CFF',
     //     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     // },
     scrollContainer: {
         alignItems: 'center',
         paddingBottom: 30,
-        backgroundColor: '#fff',
     },
     container: {
         flex: 1,

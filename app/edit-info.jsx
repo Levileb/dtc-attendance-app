@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 10,
     elevation: 6,
-    marginTop: -height * 0.13,
+    marginTop: -height * 0.15,
   },
   title: {
     alignItems: 'center',

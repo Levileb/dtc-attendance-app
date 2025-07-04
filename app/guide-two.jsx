@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, Dimensions,
-         TouchableOpacity, ScrollView, SafeAreaView, 
+         TouchableOpacity, ScrollView, StatusBar, SafeAreaView, 
          Platform, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useFonts } from 'expo-font';
@@ -70,13 +70,12 @@ const styles = StyleSheet.create({
     },
     // safeArea: {
     //     flex: 1,
-    //     backgroundColor: '#fff',
+    //     backgroundColor: '#027CFF',
     //     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     // },
     scrollContainer: {
         alignItems: 'center',
         paddingBottom: 30,
-        backgroundColor: '#fff',
     },
     container: {
         flex: 1,

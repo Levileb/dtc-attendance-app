@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import {
   View, Text, Image, StyleSheet, Dimensions, TouchableOpacity, ScrollView,
-  SafeAreaView, Platform, ActivityIndicator, BackHandler } from 'react-native';
+  SafeAreaView, Platform, ActivityIndicator, StatusBar, BackHandler } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   // },
   scrollContainer: {
     alignItems: 'center',
-    paddingBottom: 30,
+    paddingVertical: 45,
     backgroundColor: '#027CFF',
   },
   loading: {
@@ -93,7 +93,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#027CFF',
     paddingTop: height * 0.02,
     paddingBottom: height * 0.1,
-    marginBottom: 20,
     borderBottomLeftRadius: 14,
     borderBottomRightRadius: 14,
   },

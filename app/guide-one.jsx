@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, StyleSheet, Dimensions,
          TouchableOpacity, ScrollView, SafeAreaView, 
-         Platform,  ActivityIndicator, StatusBar } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+         Platform, ActivityIndicator, StatusBar, Modal, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useFonts } from 'expo-font';
 
 const { width, height } = Dimensions.get('window');
@@ -13,7 +13,8 @@ export default function GuideOne() {
         'BebasNeue': require('../assets/fonts/BebasNeue-Regular.ttf'),
         'Roboto': require('../assets/fonts/Roboto-Light.ttf'),
       });
-    const navigation = useNavigation();
+    const router = useRouter();
+    const [isImageFullScreen, setIsImageFullScreen] = useState(false);
 
      if (!fontsLoaded) {
         return (
@@ -25,6 +26,10 @@ export default function GuideOne() {
           </View>
         );
       }
+
+    const toggleImageFullScreen = () => {
+        setIsImageFullScreen(!isImageFullScreen);
+    };
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -41,28 +46,63 @@ export default function GuideOne() {
                         <Text style={styles.textT}>GENERAL USER GUIDELINES AND POLICIES</Text>
                     </View>
                     <View style={styles.body}>
-                         <Image
-                        source={require('../assets/images/app-assets/rule1.png')}
-                        style={styles.rules}
-                        resizeMode="contain"
-                         />
+                        <TouchableOpacity onPress={toggleImageFullScreen} activeOpacity={0.8}>
+                            <Image
+                                source={require('../assets/images/app-assets/rule1.png')}
+                                style={styles.rules}
+                                resizeMode="contain"
+                            />
+                        </TouchableOpacity>
+                        
                         <TouchableOpacity
                             style={styles.button}
-                            onPress={() => navigation.navigate('guide-two')}
+                            onPress={() => router.push('/guide-two')}
                         >
                             <Text style={styles.buttonText}>PROCEED</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
             </ScrollView>
+
+            {/* Full Screen Image Modal */}
+            <Modal
+                visible={isImageFullScreen}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={toggleImageFullScreen}
+            >
+                <View style={styles.fullScreenContainer}>
+                    <Pressable style={styles.fullScreenBackground} onPress={toggleImageFullScreen}>
+                        <TouchableOpacity 
+                            style={styles.closeButton} 
+                            onPress={toggleImageFullScreen}
+                        >
+                            <Text style={styles.closeButtonText}>✕</Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity onPress={toggleImageFullScreen} activeOpacity={1}>
+                            <Image
+                                source={require('../assets/images/app-assets/rule1.png')}
+                                style={styles.fullScreenImage}
+                                resizeMode="contain"
+                            />
+                        </TouchableOpacity>
+                    </Pressable>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
+    loading: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     // safeArea: {
     //     flex: 1,
-    //     backgroundColor: '#027CFF',
+    //     backgroundColor: '#fff',
     //     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     // },
     scrollContainer: {
@@ -88,7 +128,7 @@ const styles = StyleSheet.create({
         height: width * 0.5,
         marginBottom: 10,
     },
-     rules: {
+    rules: {
         width: width * 1.05,
         height: width * 1.05,
         marginBottom: 10,
@@ -177,6 +217,43 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#fff',
         fontSize: width * 0.05,
-         fontFamily: 'Roboto',
+        fontFamily: 'Roboto',
+    },
+    // Full Screen Modal Styles
+    fullScreenContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    fullScreenBackground: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+        height: '100%',
+    },
+    fullScreenImage: {
+        width: width * 0.95,
+        height: height * 0.8,
+        maxWidth: width,
+        maxHeight: height,
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 50,
+        right: 20,
+        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+        borderRadius: 20,
+        width: 40,
+        height: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1,
+    },
+    closeButtonText: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#000',
     },
 });

@@ -9,9 +9,6 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { database } from '../FirebaseConfig';
 import { ref, get, update } from 'firebase/database';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
-import * as ImagePicker from 'expo-image-picker';
-import * as ImageManipulator from 'expo-image-manipulator';
 import { useRouter } from 'expo-router';
 import { useFonts } from 'expo-font';
 
@@ -112,59 +109,6 @@ export default function EditInfo() {
         }
     };
 
-    const pickImage = async () => {
-        try {
-          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-          if (status !== 'granted') {
-            Alert.alert('Permission denied', 'Camera roll permission is required to select an image.');
-            return;
-          }
-    
-          const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            allowsEditing: true,
-            aspect: [1, 1], // 1x1 format
-            quality: 0.8,
-          });
-    
-          if (!result.canceled && result.assets[0]) {
-            setLoading(true);
-            
-            // Resize image to reduce file size
-            const manipulatedImage = await ImageManipulator.manipulateAsync(
-              result.assets[0].uri,
-              [{ resize: { width: 300, height: 300 } }], // Reduce to 300x300
-              { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
-            );
-    
-            setProfileImage(manipulatedImage.uri);
-            setLoading(false);
-          }
-        } catch (error) {
-          setLoading(false);
-          console.error('Error picking image:', error);
-          Alert.alert('Error', 'Failed to pick image.');
-        }
-      };
-    
-      const uploadImageToFirebase = async (imageUri) => {
-        try {
-          const response = await fetch(imageUri);
-          const blob = await response.blob();
-          
-          const storage = getStorage();
-          const imageRef = storageRef(storage, `profile_images/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.jpg`);
-          
-          await uploadBytes(imageRef, blob);
-          const downloadURL = await getDownloadURL(imageRef);
-          
-          return downloadURL;
-        } catch (error) {
-          console.error('Error uploading image:', error);
-          throw error;
-        }
-      };
-
     const validateEmail = (email) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
@@ -199,13 +143,6 @@ export default function EditInfo() {
         setLoading(true);
 
         try {
-            let imageUrl = profileImageUrl; // Keep existing URL if no new image
-            
-            // Upload new image if selected
-            if (profileImage) {
-              imageUrl = await uploadImageToFirebase(profileImage);
-            }
-
             const userData = {
                 name,
                 city,
@@ -215,7 +152,6 @@ export default function EditInfo() {
                 birthdate,
                 contactNumber,
                 email,
-                profileImageUrl: imageUrl,
                 timestamp: new Date().toISOString(),
             };
 
@@ -267,23 +203,6 @@ export default function EditInfo() {
                     </View>
 
                     <View style={styles.body}>
-                        {/* Profile Image Upload */}
-                        <View style={styles.imageUploadContainer}>
-                            <Text style={styles.imageLabel}>Profile Photo (1x1 format)</Text>
-                            <TouchableOpacity style={styles.imagePickerButton} onPress={pickImage}>
-                                {profileImage ? (
-                                <Image source={{ uri: profileImage }} style={styles.profileImagePreview} />
-                                ) : profileImageUrl ? (
-                                <Image source={{ uri: profileImageUrl }} style={styles.profileImagePreview} />
-                                ) : (
-                                <View style={styles.imagePlaceholder}>
-                                    <Ionicons name="camera" size={40} color="#888" />
-                                    <Text style={styles.imagePlaceholderText}>Tap to select photo</Text>
-                                </View>
-                                )}
-                            </TouchableOpacity>
-                        </View>
-
                         {[
                             { placeholder: 'Full Name *', icon: <MaterialIcons name="person" size={22} color="#888" />, value: name, setter: setName },
                             { placeholder: 'City/Municipality *', icon: <FontAwesome5 name="city" size={20} color="#888" />, value: city, setter: setCity },

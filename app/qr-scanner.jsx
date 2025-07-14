@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, Image, StyleSheet, Dimensions,
   TouchableOpacity, ScrollView, SafeAreaView,
-  Platform, Modal, Pressable, BackHandler, StatusBar,
+  Platform, Modal, Pressable, BackHandler,
   ActivityIndicator } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -31,6 +31,7 @@ export default function Scanner() {
   const [isProcessing, setIsProcessing] = useState(false);
   const timeoutRef = useRef(null);
   const navigationRef = useRef(false);
+  const isloggedin = true;
 
 useEffect(() => {
   if (!permission) requestPermission();
@@ -134,6 +135,7 @@ const handleQRCodeScanned = async (scanningResult) => {
       const logEntry = {
         user: userData,
         scanResult: parsed,
+        login: isloggedin,
         timestamp: now.toISOString(),
       };
 

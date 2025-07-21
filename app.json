@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Smart Log",
-    "slug": "dtc-attendance-app",
+    "slug": "SmartLog",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/app-assets/smicon.png",

@@ -12,7 +12,7 @@ import { ref, push, set } from 'firebase/database';
 import { useRouter } from 'expo-router';
 import { useFonts } from 'expo-font';
 import CheckBox from 'expo-checkbox';
-
+import TermsAndPrivacyModal from './TermsAndPrivacyModal';
 const { width, height } = Dimensions.get('window');
 
 export default function Register() {
@@ -37,6 +37,10 @@ export default function Register() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
 
+  // Modal states
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalType, setModalType] = useState('');
+
   const sectorOptions = ['NGA', 'LGU', 'Student/SUC', 'PWDs', 'PDLs', 'Indigenous People',
                          'Senior Citizens', 'OSY', 'Farmers/Fisherfolks', 'MSME/Enrepreneurs', 'DICT', 'Others'];
   const genderOptions = ['Male', 'Female', 'Other', 'Prefer not to say'];
@@ -49,7 +53,6 @@ export default function Register() {
     }
   };
 
-
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -58,6 +61,16 @@ export default function Register() {
   const validateContactNumber = (number) => {
     const phoneRegex = /^[0-9]{10,11}$/;
     return phoneRegex.test(number.replace(/\s/g, ''));
+  };
+
+  const openModal = (type) => {
+    setModalType(type);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    setModalType('');
   };
 
   const handleSave = async () => {
@@ -230,7 +243,7 @@ export default function Register() {
               />
             )}
 
-            {/* Terms and Conditions Checkbox */}
+            {/* Terms and Conditions Checkbox with Clickable Links */}
             <View style={styles.checkboxContainer}>
               <CheckBox
                 value={agreeToTerms}
@@ -238,9 +251,16 @@ export default function Register() {
                 style={styles.checkbox}
                 color={agreeToTerms ? '#027CFF' : undefined}
               />
-              <Text style={styles.checkboxText}>
-                I agree to the <Text style={styles.linkText}>Terms and Conditions</Text> and <Text style={styles.linkText}>Privacy Policy</Text>
-              </Text>
+              <View style={styles.checkboxTextContainer}>
+                <Text style={styles.checkboxText}>I agree to the </Text>
+                <TouchableOpacity onPress={() => openModal('terms')}>
+                  <Text style={styles.linkText}>Terms and Conditions</Text>
+                </TouchableOpacity>
+                <Text style={styles.checkboxText}> and </Text>
+                <TouchableOpacity onPress={() => openModal('privacy')}>
+                  <Text style={styles.linkText}>Privacy Policy</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             <Text style={styles.note}>
@@ -261,11 +281,19 @@ export default function Register() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Terms and Privacy Modal */}
+      <TermsAndPrivacyModal 
+        visible={modalVisible} 
+        onClose={closeModal} 
+        type={modalType}
+      />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  // ...existing styles...
   loading: {
     flex: 1,
     justifyContent: 'center',
@@ -325,43 +353,6 @@ const styles = StyleSheet.create({
     marginTop: 5,
     fontFamily: 'Roboto',
   },
-  imageUploadContainer: {
-    alignItems: 'center',
-    marginVertical: 15,
-  },
-  imageLabel: {
-    fontSize: width * 0.04,
-    fontFamily: 'Roboto',
-    color: '#333',
-    marginBottom: 10,
-  },
-  imagePickerButton: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    overflow: 'hidden',
-    borderWidth: 2,
-    borderColor: '#027CFF',
-    borderStyle: 'dashed',
-  },
-  profileImagePreview: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 58,
-  },
-  imagePlaceholder: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-  },
-  imagePlaceholderText: {
-    fontSize: 12,
-    color: '#888',
-    fontFamily: 'Roboto',
-    textAlign: 'center',
-    marginTop: 5,
-  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -388,15 +379,21 @@ const styles = StyleSheet.create({
   },
   checkboxContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginVertical: 15,
     paddingHorizontal: 5,
   },
   checkbox: {
     marginRight: 10,
+    marginTop: 2,
+  },
+  checkboxTextContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
   },
   checkboxText: {
-    flex: 1,
     fontSize: width * 0.035,
     color: '#333',
     fontFamily: 'Roboto',
@@ -404,6 +401,9 @@ const styles = StyleSheet.create({
   linkText: {
     color: '#027CFF',
     textDecorationLine: 'underline',
+    fontSize: width * 0.035,
+    fontFamily: 'Roboto',
+    fontWeight: '600',
   },
   note: {
     fontSize: width * 0.03,
